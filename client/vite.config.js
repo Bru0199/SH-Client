@@ -14,4 +14,6 @@ export default defineConfig({
     globals: true,
     css: true,
   },
+  server: {
+    historyApiFallback: true}
 })
