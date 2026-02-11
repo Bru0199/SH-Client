@@ -365,7 +365,7 @@ const AuthModal = () => {
             />
           </div>
           <button className="button primary" type="submit" disabled={isLoading}>
-            {isLoading ? "Sending OTP..." : "Send OTP"}
+            {isLoading ? "Please wait..." : "Sign Up"}
           </button>
         </form>
       )}
