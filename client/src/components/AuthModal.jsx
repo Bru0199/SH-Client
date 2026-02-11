@@ -1,28 +1,28 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { getErrorMessage } from '../utils/api.js'
-import { ArrowLeft, Mail, ShieldCheck } from 'lucide-react'
-import { useAuth } from '../context/AuthContext.jsx'
-import Modal from './Modal.jsx'
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { getErrorMessage } from "../utils/api.js";
+import { ArrowLeft, Mail, ShieldCheck } from "lucide-react";
+import { useAuth } from "../context/AuthContext.jsx";
+import Modal from "./Modal.jsx";
 
 const initialForm = {
-  username: '',
-  email: '',
-  phone: '',
-  password: '',
-}
+  username: "",
+  email: "",
+  phone: "",
+  password: "",
+};
 
 const initialReset = {
-  password: '',
-  confirm: '',
-}
+  password: "",
+  confirm: "",
+};
 
-const OTP_LENGTH = 6
-const OTP_TIMEOUT = 60
+const OTP_LENGTH = 6;
+const OTP_TIMEOUT = 60;
 
 const AuthModal = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const {
     isAuthModalOpen,
     authView,
@@ -36,218 +36,236 @@ const AuthModal = () => {
     resetPassword,
     sendOtp,
     isLoading,
-  } = useAuth()
-  const [form, setForm] = useState(initialForm)
-  const [resetForm, setResetForm] = useState(initialReset)
-  const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(''))
-  const [otpTimer, setOtpTimer] = useState(OTP_TIMEOUT)
-  const [otpPurpose, setOtpPurpose] = useState('register')
-  const [activeEmail, setActiveEmail] = useState('')
-  const otpRefs = useRef([])
+  } = useAuth();
+  const [form, setForm] = useState(initialForm);
+  const [resetForm, setResetForm] = useState(initialReset);
+  const [otpDigits, setOtpDigits] = useState(Array(OTP_LENGTH).fill(""));
+  const [otpTimer, setOtpTimer] = useState(OTP_TIMEOUT);
+  const [otpPurpose, setOtpPurpose] = useState("register");
+  const [activeEmail, setActiveEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const otpRefs = useRef([]);
 
   useEffect(() => {
     if (isAuthModalOpen) {
-      setForm(initialForm)
-      setResetForm(initialReset)
-      setOtpDigits(Array(OTP_LENGTH).fill(''))
-      setOtpTimer(OTP_TIMEOUT)
+      setForm(initialForm);
+      setResetForm(initialReset);
+      setOtpDigits(Array(OTP_LENGTH).fill(""));
+      setOtpTimer(OTP_TIMEOUT);
     }
-  }, [isAuthModalOpen, authView])
+  }, [isAuthModalOpen, authView]);
 
   useEffect(() => {
-    if (authView === 'otp') {
-      setTimeout(() => otpRefs.current[0]?.focus(), 0)
+    if (authView === "otp") {
+      setTimeout(() => otpRefs.current[0]?.focus(), 0);
     }
-  }, [authView])
+  }, [authView]);
 
   useEffect(() => {
-    if (authView !== 'otp') return undefined
-    if (otpTimer <= 0) return undefined
+    if (authView !== "otp") return undefined;
+    if (otpTimer <= 0) return undefined;
     const interval = setInterval(() => {
-      setOtpTimer((prev) => Math.max(prev - 1, 0))
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [authView, otpTimer])
+      setOtpTimer((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [authView, otpTimer]);
 
   const title = useMemo(() => {
-    if (authView === 'register') return 'Create account'
-    if (authView === 'forgot') return 'Reset password'
-    if (authView === 'otp') return 'Verify OTP'
-    if (authView === 'reset') return 'Set new password'
-    return 'Welcome back'
-  }, [authView])
+    if (authView === "register") return "Create account";
+    if (authView === "forgot") return "Reset password";
+    if (authView === "otp") return "Verify OTP";
+    if (authView === "reset") return "Set new password";
+    return "Welcome back";
+  }, [authView]);
 
   const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = event.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleResetChange = (event) => {
-    const { name, value } = event.target
-    setResetForm((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = event.target;
+    setResetForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleLogin = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
     try {
-      const loggedInUser = await login({ email: form.email, password: form.password })
-      toast.success('Logged in successfully.')
-      closeAuthModal()
-      if (loggedInUser?.role === 'admin') {
-        navigate('/admin')
+      const loggedInUser = await login({
+        email: form.email,
+        password: form.password,
+      });
+      toast.success("Logged in successfully.");
+      closeAuthModal();
+      if (loggedInUser?.role === "admin") {
+        navigate("/admin");
       } else {
-        navigate('/')
+        navigate("/");
       }
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Something went wrong.'))
+      toast.error(getErrorMessage(error, "Something went wrong."));
     }
-  }
+  };
 
   const handleRegister = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
+    setEmailError("");
     try {
-      await requestRegistrationOtp(form)
-      setActiveEmail(form.email)
-      setOtpPurpose('register')
-      setOtpDigits(Array(OTP_LENGTH).fill(''))
-      setOtpTimer(OTP_TIMEOUT)
-      toast.success('OTP sent to your email.')
-      setAuthView('otp')
+      await requestRegistrationOtp(form);
+      setActiveEmail(form.email);
+      setOtpPurpose("register");
+      setOtpDigits(Array(OTP_LENGTH).fill(""));
+      setOtpTimer(OTP_TIMEOUT);
+      toast.success("OTP sent to your email.");
+      setAuthView("otp");
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to send OTP.'))
+      const msg = getErrorMessage(error, "Unable to send OTP.");
+      setEmailError(msg);
+      toast.error(msg);
     }
-  }
+  };
 
   const handleForgot = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
+    setEmailError("");
     try {
-      await requestPasswordResetOtp(form.email)
-      setActiveEmail(form.email)
-      setOtpPurpose('reset')
-      setOtpDigits(Array(OTP_LENGTH).fill(''))
-      setOtpTimer(OTP_TIMEOUT)
-      toast.success('OTP sent to your email.')
-      setAuthView('otp')
+      await requestPasswordResetOtp(form.email);
+      setActiveEmail(form.email);
+      setOtpPurpose("reset");
+      setOtpDigits(Array(OTP_LENGTH).fill(""));
+      setOtpTimer(OTP_TIMEOUT);
+      toast.success("OTP sent to your email.");
+      setAuthView("otp");
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to send OTP.'))
+      const msg = getErrorMessage(error, "Unable to send OTP.");
+      setEmailError(msg);
+      toast.error(msg);
     }
-  }
+  };
 
   const handleVerifyOtp = async (event) => {
-    event.preventDefault()
-    const code = otpDigits.join('')
+    event.preventDefault();
+    const code = otpDigits.join("");
     if (code.length !== OTP_LENGTH) {
-      toast.error('Please enter the 6-digit OTP.')
-      return
+      toast.error("Please enter the 6-digit OTP.");
+      return;
     }
     try {
-      if (otpPurpose === 'register') {
-        await completeRegistration(code)
-        toast.success('OTP verified. Please login.')
-        setAuthView('login')
+      if (otpPurpose === "register") {
+        await completeRegistration(code);
+        toast.success("OTP verified. Please login.");
+        setAuthView("login");
       } else {
-        await verifyResetOtp(code)
-        toast.success('OTP verified. Set a new password.')
-        setAuthView('reset')
+        await verifyResetOtp(code);
+        toast.success("OTP verified. Set a new password.");
+        setAuthView("reset");
       }
-      setOtpDigits(Array(OTP_LENGTH).fill(''))
+      setOtpDigits(Array(OTP_LENGTH).fill(""));
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Invalid OTP.'))
+      toast.error(getErrorMessage(error, "Invalid OTP."));
     }
-  }
+  };
 
   const handleResetPassword = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
     if (!resetForm.password || resetForm.password !== resetForm.confirm) {
-      toast.error('Passwords do not match.')
-      return
+      toast.error("Passwords do not match.");
+      return;
     }
     try {
-      await resetPassword(activeEmail, resetForm.password)
-      toast.success('Password updated. Please login.')
-      setAuthView('login')
+      await resetPassword(activeEmail, resetForm.password);
+      toast.success("Password updated. Please login.");
+      setAuthView("login");
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to reset password.'))
+      toast.error(getErrorMessage(error, "Unable to reset password."));
     }
-  }
+  };
 
   const handleOtpChange = (index, value) => {
-    const sanitized = value.replace(/\D/g, '')
+    const sanitized = value.replace(/\D/g, "");
     if (!sanitized) {
       setOtpDigits((prev) => {
-        const next = [...prev]
-        next[index] = ''
-        return next
-      })
-      return
+        const next = [...prev];
+        next[index] = "";
+        return next;
+      });
+      return;
     }
 
-    const nextDigits = [...otpDigits]
+    const nextDigits = [...otpDigits];
     if (sanitized.length === 1) {
-      nextDigits[index] = sanitized
-      setOtpDigits(nextDigits)
+      nextDigits[index] = sanitized;
+      setOtpDigits(nextDigits);
       if (index < OTP_LENGTH - 1) {
-        otpRefs.current[index + 1]?.focus()
+        otpRefs.current[index + 1]?.focus();
       }
-      return
+      return;
     }
 
     sanitized
       .slice(0, OTP_LENGTH)
-      .split('')
+      .split("")
       .forEach((digit, idx) => {
-        nextDigits[idx] = digit
-      })
-    setOtpDigits(nextDigits)
-    const focusIndex = Math.min(sanitized.length, OTP_LENGTH) - 1
-    otpRefs.current[focusIndex]?.focus()
-  }
+        nextDigits[idx] = digit;
+      });
+    setOtpDigits(nextDigits);
+    const focusIndex = Math.min(sanitized.length, OTP_LENGTH) - 1;
+    otpRefs.current[focusIndex]?.focus();
+  };
 
   const handleOtpKeyDown = (event, index) => {
-    if (event.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      otpRefs.current[index - 1]?.focus()
+    if (event.key === "Backspace" && !otpDigits[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
     }
-  }
+  };
 
   const handleOtpPaste = (event) => {
-    const pasted = event.clipboardData.getData('text').replace(/\D/g, '')
-    if (!pasted) return
-    event.preventDefault()
-    handleOtpChange(0, pasted)
-  }
+    const pasted = event.clipboardData.getData("text").replace(/\D/g, "");
+    if (!pasted) return;
+    event.preventDefault();
+    handleOtpChange(0, pasted);
+  };
 
   const handleResend = async () => {
     try {
-      await sendOtp(activeEmail, otpPurpose)
-      setOtpDigits(Array(OTP_LENGTH).fill(''))
-      setOtpTimer(OTP_TIMEOUT)
-      toast.success('OTP resent.')
+      await sendOtp(activeEmail, otpPurpose);
+      setOtpDigits(Array(OTP_LENGTH).fill(""));
+      setOtpTimer(OTP_TIMEOUT);
+      toast.success("OTP resent.");
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to resend OTP.'))
+      toast.error(getErrorMessage(error, "Unable to resend OTP."));
     }
-  }
+  };
 
   const handleBack = () => {
-    if (authView === 'otp') {
-      setAuthView(otpPurpose === 'register' ? 'register' : 'forgot')
-      return
+    if (authView === "otp") {
+      setAuthView(otpPurpose === "register" ? "register" : "forgot");
+      return;
     }
-    if (authView === 'register' || authView === 'forgot' || authView === 'reset') {
-      setAuthView('login')
-      return
+    if (
+      authView === "register" ||
+      authView === "forgot" ||
+      authView === "reset"
+    ) {
+      setAuthView("login");
+      return;
     }
-  }
+  };
 
   return (
     <Modal title={title} isOpen={isAuthModalOpen} onClose={closeAuthModal}>
-      {authView !== 'login' && (
-        <button className="button ghost back-button" type="button" onClick={handleBack}>
+      {authView !== "login" && (
+        <button
+          className="button ghost back-button"
+          type="button"
+          onClick={handleBack}
+        >
           <ArrowLeft size={18} />
           Back
         </button>
       )}
 
-      {authView === 'login' && (
+      {authView === "login" && (
         <form className="form-card" onSubmit={handleLogin}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -276,20 +294,20 @@ const AuthModal = () => {
           <button
             className="button ghost"
             type="button"
-            onClick={() => setAuthView('forgot')}
+            onClick={() => setAuthView("forgot")}
           >
             Forgot password?
           </button>
           <button className="button primary" type="submit" disabled={isLoading}>
-            {isLoading ? 'Please wait...' : 'Login'}
+            {isLoading ? "Please wait..." : "Login"}
           </button>
           <div className="auth-footer">
             <span>
-              New here?{' '}
+              New here?{" "}
               <button
                 className="button-link"
                 type="button"
-                onClick={() => setAuthView('register')}
+                onClick={() => setAuthView("register")}
               >
                 Create an account
               </button>
@@ -298,7 +316,7 @@ const AuthModal = () => {
         </form>
       )}
 
-      {authView === 'register' && (
+      {authView === "register" && (
         <form className="form-card" onSubmit={handleRegister}>
           <div className="form-group">
             <label htmlFor="username">Full name</label>
@@ -347,12 +365,12 @@ const AuthModal = () => {
             />
           </div>
           <button className="button primary" type="submit" disabled={isLoading}>
-            {isLoading ? 'Sending OTP...' : 'Send OTP'}
+            {isLoading ? "Sending OTP..." : "Send OTP"}
           </button>
         </form>
       )}
 
-      {authView === 'forgot' && (
+      {authView === "forgot" && (
         <form className="form-card" onSubmit={handleForgot}>
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -367,16 +385,20 @@ const AuthModal = () => {
             />
           </div>
           <button className="button primary" type="submit" disabled={isLoading}>
-            {isLoading ? 'Sending OTP...' : 'Send OTP'}
+            {isLoading ? "Sending OTP..." : "Send OTP"}
           </button>
         </form>
       )}
 
-      {authView === 'otp' && (
+      {authView === "otp" && (
         <form className="form-card" onSubmit={handleVerifyOtp}>
           <div className="otp-banner">
             <div className="otp-icon">
-              {otpPurpose === 'register' ? <ShieldCheck size={22} /> : <Mail size={22} />}
+              {otpPurpose === "register" ? (
+                <ShieldCheck size={22} />
+              ) : (
+                <Mail size={22} />
+              )}
             </div>
             <div>
               <h4>Enter the 6-digit code</h4>
@@ -390,7 +412,7 @@ const AuthModal = () => {
               <input
                 key={`otp-${index}`}
                 ref={(el) => {
-                  otpRefs.current[index] = el
+                  otpRefs.current[index] = el;
                 }}
                 className="otp-input"
                 inputMode="numeric"
@@ -404,8 +426,8 @@ const AuthModal = () => {
           </div>
           <div className="otp-timer">
             <span>
-              Resend available in{' '}
-              <strong>{otpTimer.toString().padStart(2, '0')}s</strong>
+              Resend available in{" "}
+              <strong>{otpTimer.toString().padStart(2, "0")}s</strong>
             </span>
             <button
               className="button ghost"
@@ -422,7 +444,7 @@ const AuthModal = () => {
         </form>
       )}
 
-      {authView === 'reset' && (
+      {authView === "reset" && (
         <form className="form-card" onSubmit={handleResetPassword}>
           <div className="form-group">
             <label htmlFor="password">New password</label>
@@ -454,14 +476,14 @@ const AuthModal = () => {
           <button
             className="button ghost"
             type="button"
-            onClick={() => setAuthView('login')}
+            onClick={() => setAuthView("login")}
           >
             Back to login
           </button>
         </form>
       )}
     </Modal>
-  )
-}
+  );
+};
 
-export default AuthModal
+export default AuthModal;
