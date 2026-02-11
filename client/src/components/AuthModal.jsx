@@ -166,6 +166,7 @@ const AuthModal = () => {
     }
   };
 
+  const { pendingResetEmail } = useAuth();
   const handleResetPassword = async (event) => {
     event.preventDefault();
     if (!resetForm.password || resetForm.password !== resetForm.confirm) {
@@ -173,7 +174,7 @@ const AuthModal = () => {
       return;
     }
     try {
-      await resetPassword(activeEmail, resetForm.password);
+      await resetPassword(pendingResetEmail, resetForm.password);
       toast.success("Password updated. Please login.");
       setAuthView("login");
     } catch (error) {
