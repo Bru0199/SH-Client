@@ -49,6 +49,18 @@ const AdminCategoriesPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    console.log('Submitting category form:', form)
+    if (form.imageFile) {
+      const fd = new FormData();
+      Object.entries(form).forEach(([k, v]) => {
+        if (k === 'imageFile') return;
+        if (v != null && v !== '') fd.append(k, v);
+      });
+      fd.append('image', form.imageFile);
+      for (let [k, v] of fd.entries()) {
+        console.log('FormData', k, v);
+      }
+    }
     try {
       if (editingId) {
         await updateCategory(editingId, form)
@@ -58,6 +70,7 @@ const AdminCategoriesPage = () => {
       closeModal()
       toast.success(editingId ? 'Category updated.' : 'Category created.')
     } catch (err) {
+      console.error('Category creation error:', err)
       toast.error(getErrorMessage(err, 'Unable to save category.'))
     }
   }
