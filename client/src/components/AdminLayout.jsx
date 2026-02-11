@@ -123,7 +123,9 @@ const AdminLayout = () => {
           {isSidebarOpen ? (
             <div className="relative flex flex-row items-center w-full px-2 pt-2 pb-4">
               <span className="flex items-center justify-center w-16 h-16">
-                <Logo showName={true} />
+                <span style={{cursor: 'pointer'}} onClick={() => navigate('/')}> 
+                  <Logo showName={true} />
+                </span>
               </span>
             </div>
           ) : (
@@ -133,6 +135,8 @@ const AdminLayout = () => {
                   src={logoImg}
                   alt="Logo"
                   className="w-8 h-8 rounded-full object-cover logo-img"
+                  style={{cursor: 'pointer'}}
+                  onClick={() => navigate('/')}
                 />
               </span>
               <button
