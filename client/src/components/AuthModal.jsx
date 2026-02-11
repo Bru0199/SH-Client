@@ -43,6 +43,7 @@ const AuthModal = () => {
   const [otpTimer, setOtpTimer] = useState(OTP_TIMEOUT)
   const [otpPurpose, setOtpPurpose] = useState('register')
   const [activeEmail, setActiveEmail] = useState('')
+  const [emailError, setEmailError] = useState('')
   const otpRefs = useRef([])
 
   useEffect(() => {
@@ -105,6 +106,7 @@ const AuthModal = () => {
 
   const handleRegister = async (event) => {
     event.preventDefault()
+    setEmailError('')
     try {
       await requestRegistrationOtp(form)
       setActiveEmail(form.email)
@@ -114,12 +116,15 @@ const AuthModal = () => {
       toast.success('OTP sent to your email.')
       setAuthView('otp')
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to send OTP.'))
+      const msg = getErrorMessage(error, 'Unable to send OTP.')
+      setEmailError(msg)
+      toast.error(msg)
     }
   }
 
   const handleForgot = async (event) => {
     event.preventDefault()
+    setEmailError('')
     try {
       await requestPasswordResetOtp(form.email)
       setActiveEmail(form.email)
@@ -129,7 +134,9 @@ const AuthModal = () => {
       toast.success('OTP sent to your email.')
       setAuthView('otp')
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Unable to send OTP.'))
+      const msg = getErrorMessage(error, 'Unable to send OTP.')
+      setEmailError(msg)
+      toast.error(msg)
     }
   }
 
@@ -138,13 +145,14 @@ const AuthModal = () => {
     const code = otpDigits.join('')
     if (code.length !== OTP_LENGTH) {
       toast.error('Please enter the 6-digit OTP.')
-      return
-    }
-    try {
-      if (otpPurpose === 'register') {
-        await completeRegistration(code)
-        toast.success('OTP verified. Please login.')
-        setAuthView('login')
+      return (
+        <Modal isOpen={isAuthModalOpen} onClose={closeAuthModal} className="auth-modal" showClose>
+          <div className="auth-modal-content">
+            <button className="modal-back" type="button" onClick={handleBack} aria-label="Back">
+              <ArrowLeft />
+            </button>
+            <h2 className="auth-modal-title">{title}</h2>
+            {emailError && <div className="alert error">{emailError}</div>}
       } else {
         await verifyResetOtp(code)
         toast.success('OTP verified. Set a new password.')

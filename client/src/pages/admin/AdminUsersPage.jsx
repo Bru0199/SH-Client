@@ -1,113 +1,125 @@
-import { useMemo, useState } from 'react'
-import toast from 'react-hot-toast'
-import { getErrorMessage } from '../../utils/api.js'
-import { PencilLine, Trash2 } from 'lucide-react'
-import { useData } from '../../context/DataContext.jsx'
-import Modal from '../../components/Modal.jsx'
-  import Table from '../../components/Table.jsx'
+import { useMemo, useState } from "react";
+import toast from "react-hot-toast";
+import { getErrorMessage } from "../../utils/api.js";
+import { PencilLine, Trash2 } from "lucide-react";
+import { useData } from "../../context/DataContext.jsx";
+import Modal from "../../components/Modal.jsx";
+import Table from "../../components/Table.jsx";
 
-const roleOptions = ['user', 'admin', 'rider']
-const statusOptions = ['active', 'inactive', 'banned']
+const roleOptions = ["user", "admin", "rider"];
+const statusOptions = ["active", "inactive", "banned"];
 
 const emptyForm = {
-  username: '',
-  email: '',
-  phone: '',
-  password: '',
-  role: 'user',
-  status: 'active',
-}
+  username: "",
+  email: "",
+  phone: "",
+  password: "",
+  role: "user",
+  status: "active",
+};
 
 const AdminUsersPage = () => {
-  const { users, addUser, updateUser, deleteUser, loading, errors } = useData()
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [isModalOpen, setModalOpen] = useState(false)
-  const [form, setForm] = useState(emptyForm)
-  const [saving, setSaving] = useState(false)
-  const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const { users, addUser, updateUser, deleteUser, loading, errors } = useData();
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isModalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const openCreate = () => {
-    setSelectedUser(null)
-    setForm(emptyForm)
-    setModalOpen(true)
-  }
+    setSelectedUser(null);
+    setForm(emptyForm);
+    setModalOpen(true);
+  };
 
   const openEdit = (user) => {
-    setSelectedUser(user)
+    setSelectedUser(user);
     setForm({
       username: user.username,
       email: user.email,
       phone: user.phone,
-      password: '',
+      password: "",
       role: user.role,
       status: user.status,
-    })
-    setModalOpen(true)
-  }
+    });
+    setModalOpen(true);
+  };
 
   const closeModal = () => {
-    setModalOpen(false)
-  }
+    setModalOpen(false);
+  };
 
   const handleSubmit = async (event) => {
-    event.preventDefault()
-    setSaving(true)
+    event.preventDefault();
+    setSaving(true);
     try {
       if (selectedUser) {
-        const payload = { ...form }
+        const payload = { ...form };
         if (!payload.password) {
-          delete payload.password
+          delete payload.password;
         }
-        await updateUser(selectedUser.id, payload)
-        toast.success('User updated.')
+        await updateUser(selectedUser.id, payload);
+        toast.success("User updated.");
       } else {
-        await addUser(form)
-        toast.success('User created.')
+        await addUser(form);
+        toast.success("User created.");
       }
-      closeModal()
+      closeModal();
     } catch (err) {
-      toast.error(getErrorMessage(err, 'Unable to save user.'))
+      toast.error(getErrorMessage(err, "Unable to save user."));
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
+  const [deleteError, setDeleteError] = useState("");
   const handleDelete = async (user) => {
-    if (!window.confirm(`Delete ${user.username}?`)) return
+    if (!window.confirm(`Delete ${user.username}?`)) return;
+    setDeleteError("");
     try {
-      await deleteUser(user.id)
-      toast.success('User deleted.')
+      await deleteUser(user.id);
+      toast.success("User deleted.");
     } catch (err) {
-      toast.error(getErrorMessage(err, 'Unable to delete user.'))
+      const msg = getErrorMessage(err, "Unable to delete user.");
+      setDeleteError(msg);
+      toast.error(msg);
     }
-  }
+  };
 
   const filteredUsers = useMemo(() => {
     return users.filter((entry) => {
-      const name = entry.username || ''
-      const email = entry.email || ''
-      const searchValue = search.toLowerCase()
+      const name = entry.username || "";
+      const email = entry.email || "";
+      const searchValue = search.toLowerCase();
       const matchesSearch =
         name.toLowerCase().includes(searchValue) ||
-        email.toLowerCase().includes(searchValue)
-      const matchesRole = roleFilter === 'all' || entry.role === roleFilter
-      const matchesStatus = statusFilter === 'all' || entry.status === statusFilter
-      return matchesSearch && matchesRole && matchesStatus
-    })
-  }, [users, search, roleFilter, statusFilter])
+        email.toLowerCase().includes(searchValue);
+      const matchesRole = roleFilter === "all" || entry.role === roleFilter;
+      const matchesStatus =
+        statusFilter === "all" || entry.status === statusFilter;
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, search, roleFilter, statusFilter]);
 
   return (
     <div className="list">
       {errors.admin && <div className="alert error">{errors.admin}</div>}
       {loading.admin && <div className="alert">Loading users...</div>}
+      {deleteError && <div className="alert error">{deleteError}</div>}
       <div className="section-header">
         <div className="admin-page-header">
           <h1 className="admin-page-title">Users</h1>
-          <p className="admin-page-description">Manage accounts, roles, and access.</p>
+          <p className="admin-page-description">
+            Manage accounts, roles, and access.
+          </p>
         </div>
-        <button className="button primary btn-add" type="button" onClick={openCreate}>
+        <button
+          className="button primary btn-add"
+          type="button"
+          onClick={openCreate}
+        >
           Add user
         </button>
       </div>
@@ -161,8 +173,8 @@ const AdminUsersPage = () => {
             <h3>No users yet</h3>
             <p>
               {users.length === 0
-                ? 'Users who sign up or are added by you will appear here.'
-                : 'No users match your search or filters. Try different criteria.'}
+                ? "Users who sign up or are added by you will appear here."
+                : "No users match your search or filters. Try different criteria."}
             </p>
           </div>
         ) : (
@@ -186,18 +198,21 @@ const AdminUsersPage = () => {
                     <td data-label="Status">
                       <span
                         className={`status-pill ${
-                          user.status === 'active'
-                            ? 'success'
-                            : user.status === 'inactive'
-                            ? 'warning'
-                            : 'danger'
+                          user.status === "active"
+                            ? "success"
+                            : user.status === "inactive"
+                              ? "warning"
+                              : "danger"
                         }`}
                       >
                         {user.status}
                       </span>
                     </td>
                     <td className="table-actions" data-label="Actions">
-                      <span className="table-actions-inner" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                      <span
+                        className="table-actions-inner"
+                        style={{ display: "inline-flex", alignItems: "center" }}
+                      >
                         <button
                           className="button ghost"
                           type="button"
@@ -206,7 +221,14 @@ const AdminUsersPage = () => {
                         >
                           <PencilLine size={16} />
                         </button>
-                        <span style={{ width: 12, minWidth: 12, display: 'inline-block' }} aria-hidden />
+                        <span
+                          style={{
+                            width: 12,
+                            minWidth: 12,
+                            display: "inline-block",
+                          }}
+                          aria-hidden
+                        />
                         <button
                           className="button danger"
                           type="button"
@@ -226,7 +248,9 @@ const AdminUsersPage = () => {
       </div>
 
       <Modal
-        title={selectedUser ? `Update user ${selectedUser.username}` : 'Create user'}
+        title={
+          selectedUser ? `Update user ${selectedUser.username}` : "Create user"
+        }
         isOpen={isModalOpen}
         onClose={closeModal}
       >
@@ -311,17 +335,23 @@ const AdminUsersPage = () => {
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, password: event.target.value }))
               }
-              placeholder={selectedUser ? 'Leave blank to keep current' : 'Set a password'}
+              placeholder={
+                selectedUser ? "Leave blank to keep current" : "Set a password"
+              }
               required={!selectedUser}
             />
           </div>
           <button className="button primary" type="submit" disabled={saving}>
-            {saving ? 'Saving...' : selectedUser ? 'Save changes' : 'Create user'}
+            {saving
+              ? "Saving..."
+              : selectedUser
+                ? "Save changes"
+                : "Create user"}
           </button>
         </form>
       </Modal>
     </div>
-  )
-}
+  );
+};
 
-export default AdminUsersPage
+export default AdminUsersPage;
