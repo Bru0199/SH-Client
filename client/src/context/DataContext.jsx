@@ -2,7 +2,6 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useAuth } from './AuthContext.jsx'
 import {
-  API_BASE_URL,
   apiDelete,
   apiGet,
   apiPatch,
@@ -308,7 +307,7 @@ export const DataProvider = ({ children }) => {
   }
 
   useEffect(() => {
-    const socketUrl = API_BASE_URL || window.location.origin
+    const socketUrl = window.location.origin
     const socket = io(socketUrl, {
       auth: token ? { token } : undefined,
       reconnection: true,
