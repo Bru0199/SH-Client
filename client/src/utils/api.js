@@ -1,14 +1,24 @@
 import { readToken } from './storage.js'
 
-const RAW_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
-export const API_BASE_URL = RAW_BASE_URL.replace(/\/$/, '')
 
-const joinUrl = (path = '') => {
-  if (!API_BASE_URL) return path
-  if (!path) return API_BASE_URL
+const DEV_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+const API_URL_1 = (import.meta.env.VITE_API_URL_1 || '').replace(/\/$/, '')
+const API_URL_2 = (import.meta.env.VITE_API_URL_2 || '').replace(/\/$/, '')
+
+/**
+ * joinUrl(path, opts)
+ * In development, uses VITE_API_BASE_URL. In production, uses VITE_API_URL_1 or VITE_API_URL_2.
+ * @param {string} path - API path
+ * @param {object} opts - { useSecond: boolean } to use API_URL_2 in prod
+ */
+export const joinUrl = (path = '', opts = {}) => {
+  const isDev = import.meta.env.DEV
+  const base = isDev ? DEV_BASE_URL : (opts.useSecond ? API_URL_2 : API_URL_1)
+  if (!base) return path
+  if (!path) return base
   if (path.startsWith('http')) return path
-  if (path.startsWith('/')) return `${API_BASE_URL}${path}`
-  return `${API_BASE_URL}/${path}`
+  if (path.startsWith('/')) return `${base}${path}`
+  return `${base}/${path}`
 }
 
 export const resolveImageUrl = (value) => {
